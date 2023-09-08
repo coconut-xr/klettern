@@ -1,5 +1,5 @@
 import { ThreeEvent } from "@react-three/fiber";
-import { Group, Vector3 } from "three";
+import { Group, PositionalAudio, Vector3 } from "three";
 import { create } from "zustand";
 import { combine } from "zustand/middleware";
 import { isXIntersection } from "@coconut-xr/xinteraction";
@@ -11,13 +11,18 @@ type State = {
   grabbingPointerId?: number;
   grabbingPoint?: Vector3;
   velocity: Vector3;
+  timeRef: { current: number };
+  won: boolean;
+  winAudio?: PositionalAudio;
 };
 
 const gravity = -10;
 const dampingFactor = 0.995;
 
 const initialState: State = {
+  won: false,
   velocity: new Vector3(0, 0, 0),
+  timeRef: { current: 0 },
 };
 
 const helperVector = new Vector3();
@@ -27,14 +32,21 @@ export const useStore = create(
     setPlayer(player: Group | undefined) {
       set({ playerRef: player });
     },
-    onPointerDown(e: ThreeEvent<PointerEvent>) {
+    setWinAudio(winAudio: PositionalAudio | undefined) {
+      set({ winAudio });
+    },
+    onPointerDown(last: boolean | undefined, e: ThreeEvent<PointerEvent>) {
       if (!isXIntersection(e)) {
         return;
       }
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      if (last) {
+        get().winAudio?.play();
+      }
       set({
         grabbingPoint: e.inputDevicePosition,
         grabbingPointerId: e.pointerId,
+        won: last ? true : false,
       });
     },
     onPointerUp(e: ThreeEvent<PointerEvent>) {
@@ -55,9 +67,19 @@ export const useStore = create(
       frame: XRFrame | undefined,
       baseSpace: XRSpace | null
     ) {
-      const { velocity, grabbingPoint, grabbingPointerId, playerRef } = get();
+      const {
+        won,
+        velocity,
+        grabbingPoint,
+        grabbingPointerId,
+        playerRef,
+        timeRef,
+      } = get();
       if (playerRef == null) {
         return;
+      }
+      if (!won) {
+        timeRef.current += delta * 1000;
       }
       if (grabbingPoint == null || grabbingPointerId == null) {
         if (playerRef.position.y > 0) {
@@ -73,6 +95,8 @@ export const useStore = create(
           //player fell down -> reset
           playerRef.position.copy(spawnPoint);
           velocity.set(0, 0, 0);
+          timeRef.current = 0;
+          set({ won: false });
           return;
         }
         //player is at origin => nothing to do

@@ -5,6 +5,7 @@ import { useStore } from "./state.js";
 const geometry = new SphereGeometry();
 geometry.scale(0.1, 0.1, 0.1);
 const material = new MeshPhongMaterial({ color: "#aa3333" });
+const lastMaterial = new MeshPhongMaterial({ color: "#33aa33" });
 
 export function Steps() {
   return (
@@ -29,21 +30,21 @@ export function Steps() {
       <Step position={[3.243, 12.535, -0.703]} />
       <Step position={[4.136, 13.192, -0.664]} />
       <Step position={[4.586, 13.556, -1.466]} />
-      <Step position={[4.175, 14.395, -2.049]} />
+      <Step last position={[4.175, 14.395, -2.049]} />
     </>
   );
 }
 
 const { onPointerDown, onPointerMove, onPointerUp } = useStore.getState();
 
-function Step(props: MeshProps) {
+function Step({ last, ...props }: MeshProps & { last?: boolean }) {
   return (
     <mesh
-      onPointerDown={onPointerDown}
+      onPointerDown={onPointerDown.bind(null, last)}
       onPointerUp={onPointerUp}
       onPointerMove={onPointerMove}
       geometry={geometry}
-      material={material}
+      material={last ? lastMaterial : material}
       {...props}
     />
   );

@@ -18,7 +18,21 @@
       height: 100svh;
     "
   >
-    <button id="enter-vr" style="z-index: 1; position: absolute; padding: 1rem;">Enter VR</button>
+    <button id="enter-vr" style="z-index: 1;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    display: block;
+    font-size: 1rem;
+    border: none;
+    box-shadow: 0px 0px 30px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    color: black;
+    background: none;
+    border-radius: 0.5rem;
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translate(-50%, -50%);">Enter AR</button>
     <canvas
       id="root"
       style="
