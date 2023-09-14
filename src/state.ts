@@ -12,15 +12,16 @@ type State = {
   grabbingPoint?: Vector3;
   velocity: Vector3;
   timeRef: { current: number };
-  won: boolean;
+  idle: boolean;
   winAudio?: PositionalAudio;
+  score?: number;
 };
 
 const gravity = -10;
 const dampingFactor = 0.995;
 
 const initialState: State = {
-  won: false,
+  idle: true,
   velocity: new Vector3(0, 0, 0),
   timeRef: { current: 0 },
 };
@@ -40,13 +41,17 @@ export const useStore = create(
         return;
       }
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      const { winAudio, score, timeRef } = get();
       if (last) {
-        get().winAudio?.play();
+        winAudio?.play();
       }
       set({
         grabbingPoint: e.inputDevicePosition,
         grabbingPointerId: e.pointerId,
-        won: last ? true : false,
+        idle: last ? true : false,
+        score: last
+          ? Math.min(timeRef.current, score ?? Number.POSITIVE_INFINITY)
+          : score,
       });
     },
     onPointerUp(e: ThreeEvent<PointerEvent>) {
@@ -68,7 +73,7 @@ export const useStore = create(
       baseSpace: XRSpace | null
     ) {
       const {
-        won,
+        idle,
         velocity,
         grabbingPoint,
         grabbingPointerId,
@@ -78,7 +83,7 @@ export const useStore = create(
       if (playerRef == null) {
         return;
       }
-      if (!won) {
+      if (!idle) {
         timeRef.current += delta * 1000;
       }
       if (grabbingPoint == null || grabbingPointerId == null) {
@@ -96,7 +101,7 @@ export const useStore = create(
           playerRef.position.copy(spawnPoint);
           velocity.set(0, 0, 0);
           timeRef.current = 0;
-          set({ won: false });
+          set({ idle: true });
           return;
         }
         //player is at origin => nothing to do
