@@ -9,7 +9,7 @@ import { XWebPointers } from "@coconut-xr/xinteraction/react";
 import { Suspense, startTransition, useEffect, useRef, useState } from "react";
 import { Gltf, PositionalAudio, Sky, Text } from "@react-three/drei";
 import { Steps } from "./steps.js";
-import { MeshProps, useFrame } from "@react-three/fiber";
+import { GroupProps, MeshProps, useFrame } from "@react-three/fiber";
 import { useStore } from "./state.js";
 import {
   Group,
@@ -123,8 +123,7 @@ function InputSources() {
             {is.handedness === "left" && (
               <Suspense>
                 <Time
-                  position-z={-0.01}
-                  position-y={0.02}
+                  position-y={0.04}
                   rotation-x={-Math.PI / 2}
                   scale={0.01}
                 />
@@ -137,6 +136,15 @@ function InputSources() {
   );
 }
 
+function formatTime(time: number) {
+  const millis = Math.floor(time % 1000);
+  const seconds = Math.floor((time / 1000) % 60);
+  const minutes = Math.floor((time / 60000) % 60);
+  return `${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}:${millis.toString().padStart(3, "0")}`;
+}
+
 function Time(props: MeshProps) {
   const [time, setTime] = useState("00:00:00");
   useEffect(() => {
@@ -144,25 +152,19 @@ function Time(props: MeshProps) {
       () =>
         startTransition(() => {
           const state = useStore.getState();
-          const time = state.timeRef.current;
-          const millis = Math.floor(time % 1000);
-          const seconds = Math.floor((time / 1000) % 60);
-          const minutes = Math.floor((time / 60000) % 60);
-          setTime(
-            `${state.won ? "final time:\n" : ""}${minutes
-              .toString()
-              .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}:${millis
-              .toString()
-              .padStart(3, "0")}`
-          );
+          setTime(formatTime(state.timeRef.current));
         }),
       50
     ); //20 times per second
     return () => clearInterval(intervalRef);
   }, []);
+
+  const score = useStore((store) => store.score);
+
   return (
-    <Text textAlign="center" {...props}>
-      {time}
+    <Text {...props} textAlign="center">
+      Current Time: {time}
+      {score && `\nScore: ${formatTime(score)}`}
     </Text>
   );
 }
