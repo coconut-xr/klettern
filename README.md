@@ -4,7 +4,7 @@
 
 VR Climbing Demo - Try it out [here](coconut-xr.github.io/klettern/)
 
-Check out our release video over on [Twitter](https://twitter.com/coconut_xr/status/1697613919617995254)
+Check out our release video over on [Twitter](https://x.com/coconut_xr/status/1702673033767350660)
 
 **Share your record times + videos with us on [Twitter](https://twitter.com/coconut_xr)**
 
